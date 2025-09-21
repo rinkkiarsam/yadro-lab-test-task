@@ -1,0 +1,37 @@
+version: "2.4"
+
+services:
+  target:
+    container_name: target
+    build:
+      context: ./target
+      args:
+        - SSH_USER=${SSH_USER}
+        - SSH_PASSWORD=${SSH_PASSWORD}
+    ports:
+      - 80
+      - 22
+    networks:
+      - test-net
+
+  agent:
+    container_name: agent
+    build: ./agent
+    env_file: ./.env
+    depends_on:
+      - target
+    volumes:
+      - ./allure-results:/app/allure-results
+      - ./allure-report:/app/allure-report
+    networks:
+      - test-net
+    ports:
+      - "8080:8080"
+    command: >
+      sh -c "pytest --alluredir=/app/allure-results || true && \
+             allure generate /app/allure-results -o /app/allure-report --clean || true && \
+             cd /app/allure-report && python3 -m http.server 8080"
+
+networks:
+  test-net:
+    driver: bridge

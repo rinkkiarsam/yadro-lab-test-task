@@ -1,0 +1,5 @@
+pytest
+paramiko
+requests
+allure-pytest
+python-dotenv
